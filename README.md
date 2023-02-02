@@ -17,6 +17,8 @@ Add to your Info.plist Bluetooth permissions
 ```
 <key>NSBluetoothAlwaysUsageDescription</key>
 <string>Our app uses bluetooth to find, connect and transfer data between different devices</string>
+<key>NSBluetoothPeripheralUsageDescription</key>
+<string>Our app uses bluetooth to find, connect and transfer data between different devices</string>
 ```
 
 ## Android
