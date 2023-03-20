@@ -180,8 +180,9 @@ class Boss {
    * Connect to a named device with proofOfPossession string, and once connected, execute the
    * callback.
    */
-  fun connect(conn: BleConnector, proofOfPossession: String, onConnectCallback: (ESPDevice) -> Unit) {
-    val esp = espManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_1)
+  fun connect(conn: BleConnector, proofOfPossession: String = "", onConnectCallback: (ESPDevice) -> Unit) {
+    val esp = espManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_0)
+    if (proofOfPossession != ""){esp.setSecurityType(ESPConstants.SecurityType.SECURITY_1)}
     EventBus.getDefault().register(object {
       @Subscribe(threadMode = ThreadMode.MAIN)
       fun onEvent(event: DeviceConnectionEvent) {
@@ -268,7 +269,7 @@ class BleScanManager(boss: Boss) : ActionManager(boss) {
 class WifiScanManager(boss: Boss) : ActionManager(boss) {
   override fun call(ctx: CallContext) {
     val name = ctx.arg("deviceName") ?: return
-    val proofOfPossession = ctx.arg("proofOfPossession") ?: return
+    val proofOfPossession = ctx.arg("proofOfPossession") ?: ""
     val conn = boss.connector(name) ?: return
     boss.d("esp connect: start")
     boss.connect(conn, proofOfPossession) { esp ->
@@ -301,7 +302,7 @@ class WifiProvisionManager(boss: Boss) : ActionManager(boss) {
     val ssid = ctx.arg("ssid") ?: return
     val passphrase = ctx.arg("passphrase") ?: return
     val deviceName = ctx.arg("deviceName") ?: return
-    val proofOfPossession = ctx.arg("proofOfPossession") ?: return
+    val proofOfPossession = ctx.arg("proofOfPossession") ?: ""
     val conn = boss.connector(deviceName) ?: return
 
     boss.connect(conn, proofOfPossession) { esp ->

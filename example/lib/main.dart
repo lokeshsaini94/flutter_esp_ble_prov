@@ -43,8 +43,8 @@ class _MyAppState extends State<MyApp> {
 
   Future scanWifiNetworks() async {
     final proofOfPossession = proofOfPossessionController.text;
-    final scannedNetworks = await _flutterEspBleProvPlugin.scanWifiNetworks(
-        selectedDeviceName, proofOfPossession);
+    final scannedNetworks =
+        await _flutterEspBleProvPlugin.scanWifiNetworks(selectedDeviceName, "");
     setState(() {
       networks = scannedNetworks;
     });
@@ -55,7 +55,7 @@ class _MyAppState extends State<MyApp> {
     final proofOfPossession = proofOfPossessionController.text;
     final passphrase = passphraseController.text;
     await _flutterEspBleProvPlugin.provisionWifi(
-        selectedDeviceName, proofOfPossession, selectedSsid, passphrase);
+        selectedDeviceName, selectedSsid, passphrase, "");
     pushFeedback(
         'Success: provisioned WiFi $selectedDeviceName on $selectedSsid');
   }
