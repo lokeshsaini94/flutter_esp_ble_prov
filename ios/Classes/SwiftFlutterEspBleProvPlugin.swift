@@ -101,7 +101,8 @@ private class BLEProvisionService: ProvisionService {
     }
     
     private func connect(deviceName: String, proofOfPossession: String, completionHandler: @escaping (ESPDevice?) -> Void) {
-        ESPProvisionManager.shared.createESPDevice(deviceName: deviceName, transport: .ble, security: .secure, proofOfPossession: proofOfPossession) { espDevice, error in
+        if(proofOfPossession == ""){
+            ESPProvisionManager.shared.createESPDevice(deviceName: deviceName, transport: .ble, security: .unsecure, proofOfPossession: proofOfPossession) { espDevice, error in
             
             if(error != nil) {
                 ESPErrorHandler.handle(error: error!, result: self.result)
@@ -117,6 +118,26 @@ private class BLEProvisionService: ProvisionService {
                 }
             }
         }
+        }else{
+            ESPProvisionManager.shared.createESPDevice(deviceName: deviceName, transport: .ble, security: .secure, proofOfPossession: proofOfPossession) { espDevice, error in
+            
+            if(error != nil) {
+                ESPErrorHandler.handle(error: error!, result: self.result)
+            }
+            espDevice?.connect { status in
+                switch status {
+                case .connected:
+                    completionHandler(espDevice!)
+                case let .failedToConnect(error):
+                    ESPErrorHandler.handle(error: error, result: self.result)
+                default:
+                    self.result(FlutterError(code: "DEVICE_DISCONNECTED", message: nil, details: nil))
+                }
+            }
+        }
+        }
+
+        
     }
     
 }
