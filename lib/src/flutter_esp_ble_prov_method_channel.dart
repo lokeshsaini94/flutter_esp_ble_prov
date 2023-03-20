@@ -33,11 +33,8 @@ class MethodChannelFlutterEspBleProv extends FlutterEspBleProvPlatform {
       [String? proofOfPossession]) async {
     final args = {
       'deviceName': deviceName,
+      'proofOfPossession': proofOfPossession ?? ""
     };
-
-    if (proofOfPossession != null) {
-      args['proofOfPossession'] = proofOfPossession;
-    }
 
     final raw = await methodChannel.invokeMethod<List<Object?>>(
         'scanWifiNetworks', args);
@@ -54,12 +51,9 @@ class MethodChannelFlutterEspBleProv extends FlutterEspBleProvPlatform {
     final args = {
       'deviceName': deviceName,
       'ssid': ssid,
-      'passphrase': passphrase
+      'passphrase': passphrase,
+      'proofOfPossession': proofOfPossession ?? ""
     };
-
-    if (proofOfPossession != null) {
-      args['proofOfPossession'] = proofOfPossession;
-    }
 
     return await methodChannel.invokeMethod<bool?>('provisionWifi', args);
   }
