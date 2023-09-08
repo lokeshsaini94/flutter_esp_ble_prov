@@ -144,6 +144,7 @@ class Boss {
   private val scanBleMethod = "scanBleDevices"
   private val scanWifiMethod = "scanWifiNetworks"
   private val provisionWifiMethod = "provisionWifi"
+  private val sendDataMethod = "sendData"
   private val platformVersionMethod = "getPlatformVersion"
 
   /**
@@ -161,6 +162,7 @@ class Boss {
   private val bleScanner: BleScanManager = BleScanManager(this)
   private val wifiScanner: WifiScanManager = WifiScanManager(this)
   private val wifiProvisioner: WifiProvisionManager = WifiProvisionManager(this)
+  private val dataSender: SendDataManager = SendDataManager(this)
 
   private lateinit var platformContext: Context
   lateinit var platformActivity: Activity
@@ -206,6 +208,7 @@ class Boss {
         scanBleMethod -> bleScanner.call(ctx)
         scanWifiMethod -> wifiScanner.call(ctx)
         provisionWifiMethod -> wifiProvisioner.call(ctx)
+        sendDataMethod -> dataSender.call(ctx)
         else -> result.notImplemented()
       }
     })
@@ -344,6 +347,32 @@ class WifiProvisionManager(boss: Boss) : ActionManager(boss) {
           ctx.result.success(false)
         }
 
+      })
+    }
+  }
+
+}
+
+
+class SendDataManager(boss: Boss) : ActionManager(boss) {
+  override fun call(ctx: CallContext) {
+    boss.e("sendData ${ctx.call.arguments}")
+    val dataToSend = ctx.arg("data") ?: return
+    val path = ctx.arg("path") ?: return
+    val deviceName = ctx.arg("deviceName") ?: return
+    val proofOfPossession = ctx.arg("proofOfPossession") ?: return
+    val conn = boss.connector(deviceName) ?: return
+
+    boss.connect(conn, proofOfPossession) { esp ->
+      boss.d("sendData: start")
+      esp.sendDataToCustomEndPoint(path, dataToSend, object : ResponseListener {
+        override fun onSuccess(byte[] returnData) {
+          ctx.result.success(returnData)
+        }
+        
+        override fun onFailure(e: java.lang.Exception?) {
+          boss.e("sendData $e")
+        }
       })
     }
   }
