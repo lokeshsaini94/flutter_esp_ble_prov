@@ -6,6 +6,7 @@ public class SwiftFlutterEspBleProvPlugin: NSObject, FlutterPlugin {
     private let SCAN_BLE_DEVICES = "scanBleDevices"
     private let SCAN_WIFI_NETWORKS = "scanWifiNetworks"
     private let PROVISION_WIFI = "provisionWifi"
+    private let SEND_DATA = "sendData"
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "flutter_esp_ble_prov", binaryMessenger: registrar.messenger())
@@ -30,6 +31,17 @@ public class SwiftFlutterEspBleProvPlugin: NSObject, FlutterPlugin {
             let proofOfPossession = arguments["proofOfPossession"] as! String
             let ssid = arguments["ssid"] as! String
             let passphrase = arguments["passphrase"] as! String
+            provisionService.provision(
+                deviceName: deviceName,
+                proofOfPossession: proofOfPossession,
+                ssid: ssid,
+                passphrase: passphrase
+            )
+        } else if (call.method == SEND_DATA) {
+            let deviceName = arguments["deviceName"] as! String
+            let proofOfPossession = arguments["proofOfPossession"] as! String
+            let data = arguments["data"] as! Data
+            let path = arguments["path"] as! String
             provisionService.provision(
                 deviceName: deviceName,
                 proofOfPossession: proofOfPossession,
@@ -96,6 +108,18 @@ private class BLEProvisionService: ProvisionService {
                     NSLog("Failed to provision device. ssid: \(ssid), deviceName: \(deviceName) ")
                     self.result(false)
                 }
+            }
+        }
+    }
+    
+    func sendData(deviceName: String, proofOfPossession: String, data: Data, path: String) {
+        self.connect(deviceName: deviceName, proofOfPossession: proofOfPossession){ device in
+            device?.sendData(path: path, data: data) { response, error in
+                if(error != nil) {
+                    ESPErrorHandler.handle(error: error!, result: self.result)
+                }
+                self.result(response)
+                device?.disconnect()
             }
         }
     }
