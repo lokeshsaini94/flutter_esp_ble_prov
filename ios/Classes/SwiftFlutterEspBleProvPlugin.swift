@@ -42,11 +42,11 @@ public class SwiftFlutterEspBleProvPlugin: NSObject, FlutterPlugin {
             let proofOfPossession = arguments["proofOfPossession"] as! String
             let data = arguments["data"] as! Data
             let path = arguments["path"] as! String
-            provisionService.provision(
+            provisionService.sendData(
                 deviceName: deviceName,
                 proofOfPossession: proofOfPossession,
-                ssid: ssid,
-                passphrase: passphrase
+                data: data,
+                path: path
             )
         } else {
             result("iOS " + UIDevice.current.systemVersion)
