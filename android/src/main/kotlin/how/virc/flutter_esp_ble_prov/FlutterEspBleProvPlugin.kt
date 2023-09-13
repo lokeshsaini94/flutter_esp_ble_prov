@@ -58,8 +58,8 @@ class CallContext(val call: MethodCall, val result: Result) {
    * Extracts an argument's value from the method call, and returns an error condition if it is not
    * present.
    */
-  fun arg(name: String): String? {
-    val v = call.argument<String>(name)
+  fun arg<out T>(name: String): T? {
+    val v = call.argument<T>(name)
     if (v == null) {
       result.error("E0", "Missing argument: $name", "The argument $name was not provided")
     }
@@ -241,7 +241,7 @@ class BleScanManager(boss: Boss) : ActionManager(boss) {
   @SuppressLint("MissingPermission")
   override fun call(ctx: CallContext) {
     boss.d("searchBleEspDevices: start")
-    val prefix = ctx.arg("prefix") ?: return
+    val prefix = ctx.arg<String>("prefix") ?: return
 
     boss.espManager.searchBleEspDevices(prefix, object : BleScanListener {
       override fun scanStartFailed() {
@@ -270,8 +270,8 @@ class BleScanManager(boss: Boss) : ActionManager(boss) {
 
 class WifiScanManager(boss: Boss) : ActionManager(boss) {
   override fun call(ctx: CallContext) {
-    val name = ctx.arg("deviceName") ?: return
-    val proofOfPossession = ctx.arg("proofOfPossession") ?: return
+    val name = ctx.arg<String>("deviceName") ?: return
+    val proofOfPossession = ctx.arg<String>("proofOfPossession") ?: return
     val conn = boss.connector(name) ?: return
     boss.d("esp connect: start")
     boss.connect(conn, proofOfPossession) { esp ->
@@ -301,10 +301,10 @@ class WifiScanManager(boss: Boss) : ActionManager(boss) {
 class WifiProvisionManager(boss: Boss) : ActionManager(boss) {
   override fun call(ctx: CallContext) {
     boss.e("provisionWifi ${ctx.call.arguments}")
-    val ssid = ctx.arg("ssid") ?: return
-    val passphrase = ctx.arg("passphrase") ?: return
-    val deviceName = ctx.arg("deviceName") ?: return
-    val proofOfPossession = ctx.arg("proofOfPossession") ?: return
+    val ssid = ctx.arg<String>("ssid") ?: return
+    val passphrase = ctx.arg<String>("passphrase") ?: return
+    val deviceName = ctx.arg<String>("deviceName") ?: return
+    val proofOfPossession = ctx.arg<String>("proofOfPossession") ?: return
     val conn = boss.connector(deviceName) ?: return
 
     boss.connect(conn, proofOfPossession) { esp ->
@@ -357,10 +357,10 @@ class WifiProvisionManager(boss: Boss) : ActionManager(boss) {
 class SendDataManager(boss: Boss) : ActionManager(boss) {
   override fun call(ctx: CallContext) {
     boss.e("sendData ${ctx.call.arguments}")
-    val dataToSend = ctx.arg("data") ?: return
-    val path = ctx.arg("path") ?: return
-    val deviceName = ctx.arg("deviceName") ?: return
-    val proofOfPossession = ctx.arg("proofOfPossession") ?: return
+    val dataToSend = ctx.arg<ByteArray>("data") ?: return
+    val path = ctx.arg<String>("path") ?: return
+    val deviceName = ctx.arg<String>("deviceName") ?: return
+    val proofOfPossession = ctx.arg<String>("proofOfPossession") ?: return
     val conn = boss.connector(deviceName) ?: return
 
     boss.connect(conn, proofOfPossession) { esp ->
