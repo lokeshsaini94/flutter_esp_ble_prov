@@ -16,6 +16,7 @@ import androidx.core.app.ActivityCompat
 import com.espressif.provisioning.*
 import com.espressif.provisioning.listeners.BleScanListener
 import com.espressif.provisioning.listeners.ProvisionListener
+import com.espressif.provisioning.listeners.ResponseListener
 import com.espressif.provisioning.listeners.WiFiScanListener
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -58,7 +59,7 @@ class CallContext(val call: MethodCall, val result: Result) {
    * Extracts an argument's value from the method call, and returns an error condition if it is not
    * present.
    */
-  fun arg<out T>(name: String): T? {
+  inline fun <reified T> arg(name: String): T? {
     val v = call.argument<T>(name)
     if (v == null) {
       result.error("E0", "Missing argument: $name", "The argument $name was not provided")
@@ -366,7 +367,7 @@ class SendDataManager(boss: Boss) : ActionManager(boss) {
     boss.connect(conn, proofOfPossession) { esp ->
       boss.d("sendData: start")
       esp.sendDataToCustomEndPoint(path, dataToSend, object : ResponseListener {
-        override fun onSuccess(byte[] returnData) {
+        override fun onSuccess(returnData: ByteArray) {
           ctx.result.success(returnData)
         }
         
