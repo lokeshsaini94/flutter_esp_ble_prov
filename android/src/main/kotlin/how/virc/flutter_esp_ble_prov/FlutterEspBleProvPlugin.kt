@@ -16,6 +16,7 @@ import androidx.core.app.ActivityCompat
 import com.espressif.provisioning.*
 import com.espressif.provisioning.listeners.BleScanListener
 import com.espressif.provisioning.listeners.ProvisionListener
+import com.espressif.provisioning.listeners.ResponseListener
 import com.espressif.provisioning.listeners.WiFiScanListener
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -58,8 +59,8 @@ class CallContext(val call: MethodCall, val result: Result) {
    * Extracts an argument's value from the method call, and returns an error condition if it is not
    * present.
    */
-  fun arg(name: String): String? {
-    val v = call.argument<String>(name)
+  inline fun <reified T> arg(name: String): T? {
+    val v = call.argument<T>(name)
     if (v == null) {
       result.error("E0", "Missing argument: $name", "The argument $name was not provided")
     }
@@ -144,6 +145,7 @@ class Boss {
   private val scanBleMethod = "scanBleDevices"
   private val scanWifiMethod = "scanWifiNetworks"
   private val provisionWifiMethod = "provisionWifi"
+  private val sendDataMethod = "sendData"
   private val platformVersionMethod = "getPlatformVersion"
 
   /**
@@ -161,6 +163,7 @@ class Boss {
   private val bleScanner: BleScanManager = BleScanManager(this)
   private val wifiScanner: WifiScanManager = WifiScanManager(this)
   private val wifiProvisioner: WifiProvisionManager = WifiProvisionManager(this)
+  private val dataSender: SendDataManager = SendDataManager(this)
 
   private lateinit var platformContext: Context
   lateinit var platformActivity: Activity
@@ -206,6 +209,7 @@ class Boss {
         scanBleMethod -> bleScanner.call(ctx)
         scanWifiMethod -> wifiScanner.call(ctx)
         provisionWifiMethod -> wifiProvisioner.call(ctx)
+        sendDataMethod -> dataSender.call(ctx)
         else -> result.notImplemented()
       }
     })
@@ -238,7 +242,7 @@ class BleScanManager(boss: Boss) : ActionManager(boss) {
   @SuppressLint("MissingPermission")
   override fun call(ctx: CallContext) {
     boss.d("searchBleEspDevices: start")
-    val prefix = ctx.arg("prefix") ?: return
+    val prefix = ctx.arg<String>("prefix") ?: return
 
     boss.espManager.searchBleEspDevices(prefix, object : BleScanListener {
       override fun scanStartFailed() {
@@ -267,8 +271,8 @@ class BleScanManager(boss: Boss) : ActionManager(boss) {
 
 class WifiScanManager(boss: Boss) : ActionManager(boss) {
   override fun call(ctx: CallContext) {
-    val name = ctx.arg("deviceName") ?: return
-    val proofOfPossession = ctx.arg("proofOfPossession") ?: return
+    val name = ctx.arg<String>("deviceName") ?: return
+    val proofOfPossession = ctx.arg<String>("proofOfPossession") ?: return
     val conn = boss.connector(name) ?: return
     boss.d("esp connect: start")
     boss.connect(conn, proofOfPossession) { esp ->
@@ -298,10 +302,10 @@ class WifiScanManager(boss: Boss) : ActionManager(boss) {
 class WifiProvisionManager(boss: Boss) : ActionManager(boss) {
   override fun call(ctx: CallContext) {
     boss.e("provisionWifi ${ctx.call.arguments}")
-    val ssid = ctx.arg("ssid") ?: return
-    val passphrase = ctx.arg("passphrase") ?: return
-    val deviceName = ctx.arg("deviceName") ?: return
-    val proofOfPossession = ctx.arg("proofOfPossession") ?: return
+    val ssid = ctx.arg<String>("ssid") ?: return
+    val passphrase = ctx.arg<String>("passphrase") ?: return
+    val deviceName = ctx.arg<String>("deviceName") ?: return
+    val proofOfPossession = ctx.arg<String>("proofOfPossession") ?: return
     val conn = boss.connector(deviceName) ?: return
 
     boss.connect(conn, proofOfPossession) { esp ->
@@ -344,6 +348,32 @@ class WifiProvisionManager(boss: Boss) : ActionManager(boss) {
           ctx.result.success(false)
         }
 
+      })
+    }
+  }
+
+}
+
+
+class SendDataManager(boss: Boss) : ActionManager(boss) {
+  override fun call(ctx: CallContext) {
+    boss.e("sendData ${ctx.call.arguments}")
+    val dataToSend = ctx.arg<ByteArray>("data") ?: return
+    val path = ctx.arg<String>("path") ?: return
+    val deviceName = ctx.arg<String>("deviceName") ?: return
+    val proofOfPossession = ctx.arg<String>("proofOfPossession") ?: return
+    val conn = boss.connector(deviceName) ?: return
+
+    boss.connect(conn, proofOfPossession) { esp ->
+      boss.d("sendData: start")
+      esp.sendDataToCustomEndPoint(path, dataToSend, object : ResponseListener {
+        override fun onSuccess(returnData: ByteArray) {
+          ctx.result.success(returnData)
+        }
+        
+        override fun onFailure(e: java.lang.Exception?) {
+          boss.e("sendData $e")
+        }
       })
     }
   }
