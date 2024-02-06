@@ -15,18 +15,18 @@ class FlutterEspBleProv {
   /// This library uses SECURITY_1 by default which insists on a
   /// [proofOfPossession] string. ESP32 Arduino demo defaults this value to
   /// "abcd1234"
-  Future<List<String>> scanWifiNetworks(
-      String deviceName, String proofOfPossession) {
+  Future<List<String>> scanWifiNetworks(String deviceName,
+      [String? proofOfPossession]) {
     return FlutterEspBleProvPlatform.instance
         .scanWifiNetworks(deviceName, proofOfPossession);
   }
 
   /// Provision the named WiFi network at [ssid] with the given [passphrase] for
   /// the named device [deviceName] and [proofOfPossession] string.
-  Future<bool?> provisionWifi(String deviceName, String proofOfPossession,
-      String ssid, String passphrase) {
+  Future<bool?> provisionWifi(String deviceName, String ssid, String passphrase,
+      [String? proofOfPossession]) {
     return FlutterEspBleProvPlatform.instance
-        .provisionWifi(deviceName, proofOfPossession, ssid, passphrase);
+        .provisionWifi(deviceName, ssid, passphrase, proofOfPossession);
   }
 
   /// Returns the native platform version

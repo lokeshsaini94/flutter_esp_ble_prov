@@ -6,7 +6,19 @@ Plugin for provisioning ESP32 Devices over BLE (Bluetooth Low Energy).
 This library uses Espressif-provided provisioning libraries for their custom
 protocol over BLE.
 
-See the example.
+The original Repo seems to be abandoned. This fork has several functionalities added as well as fixed bugs. SendData branch is currently the working branch. If you want to use this repository add into your Pubspec.yaml:
+
+```
+  flutter_esp_ble_prov: 
+    git:
+      url: https://gitlab.com/kevindowling/flutter_esp_ble_prov
+      ref: SendData
+```
+
+Functionalities added:
+* Security 0 connection 
+* Wifi list sends back rssi as well as security for each network
+* You can send custom data back and forth from the ESP device. 
 
 ## Requirements
 
@@ -40,6 +52,24 @@ Bluetooth permissions on Android changed at S (31) so some creative behaviour is
 required in the manifest. This is all [documented](https://developer.android.com/guide/topics/connectivity/bluetooth/permissions) which the library requests on your behalf.
 
 # Notes
+The wifi list is sent back from this plugin as JSon. In my implementation I have converted the JSon list into objects:
+
+```
+import 'dart:convert';
+
+class WifiNetwork {
+  String name = "";
+  int rssi = 0;
+  int security = 0;
+
+  WifiNetwork(this.name, this.rssi, this.security);
+}
+
+List<WifiNetwork> wifiNetworks = wifiNetworksJSon.map((jsonString) {
+      Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+      return WifiNetwork(jsonMap['name'], jsonMap['rssi'], jsonMap['security']);
+    }).toList();
+```
 
 ## Library embedding
 

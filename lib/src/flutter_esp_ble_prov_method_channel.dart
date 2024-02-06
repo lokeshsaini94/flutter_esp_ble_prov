@@ -29,12 +29,13 @@ class MethodChannelFlutterEspBleProv extends FlutterEspBleProvPlatform {
   }
 
   @override
-  Future<List<String>> scanWifiNetworks(
-      String deviceName, String proofOfPossession) async {
+  Future<List<String>> scanWifiNetworks(String deviceName,
+      [String? proofOfPossession]) async {
     final args = {
       'deviceName': deviceName,
-      'proofOfPossession': proofOfPossession,
+      'proofOfPossession': proofOfPossession ?? ""
     };
+
     final raw = await methodChannel.invokeMethod<List<Object?>>(
         'scanWifiNetworks', args);
     final List<String> networks = [];
@@ -45,14 +46,15 @@ class MethodChannelFlutterEspBleProv extends FlutterEspBleProvPlatform {
   }
 
   @override
-  Future<bool?> provisionWifi(String deviceName, String proofOfPossession,
-      String ssid, String passphrase) async {
+  Future<bool?> provisionWifi(String deviceName, String ssid, String passphrase,
+      [String? proofOfPossession]) async {
     final args = {
       'deviceName': deviceName,
-      'proofOfPossession': proofOfPossession,
       'ssid': ssid,
-      'passphrase': passphrase
+      'passphrase': passphrase,
+      'proofOfPossession': proofOfPossession ?? ""
     };
+
     return await methodChannel.invokeMethod<bool?>('provisionWifi', args);
   }
 }

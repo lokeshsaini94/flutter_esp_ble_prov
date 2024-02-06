@@ -38,3 +38,4 @@ build/
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 
+.vscode/settings.json
