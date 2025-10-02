@@ -28,6 +28,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+
+    namespace "com.yazas.flutter_esp_ble_prov"
+
     compileSdkVersion 34
 
     compileOptions {
